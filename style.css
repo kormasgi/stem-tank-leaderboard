@@ -1,0 +1,25 @@
+body {
+    margin: 0;
+    font-family: Arial;
+}
+
+#top {
+    width: 100%;
+    height: 80vh;
+}
+
+#bottom {
+    width: 100%;
+    height: 20vh;
+    display: flex;
+}
+
+#lineContainer {
+    width: 50%;
+    height: 100%;
+}
+
+canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
