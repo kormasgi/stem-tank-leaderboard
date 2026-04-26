@@ -12,27 +12,46 @@ let leaderHistory = [];
 let timeLabels = [];
 
 async function loadData() {
-  const { data } = await supabase.from("groups").select("*");
 
-  data.sort((a, b) => b.balance - a.balance);
+  const { data: groups } = await supabase.from("groups").select("*");
 
-  const labels = data.map(g => "Group " + g.name);
-  const values = data.map(g => g.balance);
+  groups.sort((a, b) => b.balance - a.balance);
 
-  const firstPlace = data[0];
+  const labels = groups.map(g => "Group " + g.name);
+  const values = groups.map(g => g.balance);
 
-  const now = new Date().toLocaleTimeString();
-  timeLabels.push(now);
-  leaderHistory.push(firstPlace.balance);
-
-  if (timeLabels.length > 10) {
-    timeLabels.shift();
-    leaderHistory.shift();
-  }
-
-  const colors = data.map((g, i) =>
+  const colors = groups.map((g, i) =>
     i === 0 ? "gold" : "rgba(54, 162, 235, 0.5)"
   );
+
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+  const { data: investments } = await supabase
+    .from("investments")
+    .select("*")
+    .gte("created_at", oneWeekAgo.toISOString())
+    .order("created_at", { ascending: true });
+
+  let totals = {};
+
+  let timeLabels = [];
+  let leaderHistory = [];
+  let leaderNames = [];
+
+  investments.forEach(inv => {
+    if (!totals[inv.group_name]) {
+      totals[inv.group_name] = 0;
+    }
+
+    totals[inv.group_name] += inv.amount;
+
+    let leader = Object.entries(totals).sort((a, b) => b[1] - a[1])[0];
+
+    timeLabels.push(new Date(inv.created_at).toLocaleTimeString());
+    leaderHistory.push(leader[1]);
+    leaderNames.push(leader[0]);
+  });
 
   const barCtx = document.getElementById("barChart");
 
@@ -63,7 +82,7 @@ async function loadData() {
     data: {
       labels: timeLabels,
       datasets: [{
-        label: firstPlace.name + " (1st place)",
+        label: "1st Place Over Time",
         data: leaderHistory,
         tension: 0.3
       }]
