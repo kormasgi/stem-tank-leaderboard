@@ -82,7 +82,7 @@ async function loadData() {
     data: {
       labels: timeLabels,
       datasets: [{
-        label: "1st Place Over Time",
+        label: "1st Place",
         data: leaderHistory,
         tension: 0.3
       }]
@@ -92,6 +92,11 @@ async function loadData() {
       maintainAspectRatio: false
     }
   });
+  const { count } = await supabase
+  .from('investments')
+  .select('*', { count: 'exact', head: true })
+
+  console.log(investments.count)
 }
 
 supabase
