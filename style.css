@@ -23,3 +23,18 @@ canvas {
     width: 100% !important;
     height: 100% !important;
 }
+
+#investContainer {
+    width: 50%;
+    height: 20vh;
+    bottom: 0;
+    left: 0;
+    text-align: center;
+    color: black;
+}
+
+#investmentAmount {
+    font-family: fantasy;
+    font-size: 75px;
+    text-shadow: 40px solid black;
+}

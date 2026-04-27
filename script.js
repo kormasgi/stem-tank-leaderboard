@@ -96,7 +96,7 @@ async function loadData() {
   .from('investments')
   .select('*', { count: 'exact', head: true })
 
-  console.log(investments.count)
+  document.getElementById("investmentAmount").innerText = "Total Investments: " + count;
 }
 
 supabase
