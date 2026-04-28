@@ -17,7 +17,7 @@ async function loadData() {
 
   groups.sort((a, b) => b.balance - a.balance);
 
-  const labels = groups.map(g => "Group " + g.name);
+  const labels = groups.map(g => g.name);
   const values = groups.map(g => g.balance);
 
   const colors = groups.map((g, i) =>
