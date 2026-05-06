@@ -3,6 +3,7 @@
 <head>
   <link rel="stylesheet" href="style.css">
   <title>Leaderboard</title>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.js"></script>
 </head>
 <body>
@@ -12,11 +13,14 @@
 </div>
 
 <div id="bottom">
-  <div id="lineContainer">
-    <canvas id="lineChart"></canvas>
-  </div>
   <div id="investContainer">
+    <div id="firstPlaceDiv">
+    <p id="firstPlace"></p>
+    </div>
+    <div id="investmentCounter">
     <p id="investmentAmount"></p>
+    <p id="totalMoney"></p>
+    </div>
   </div>
 </div>
 

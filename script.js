@@ -6,14 +6,16 @@ const supabase = createClient(
 );
 
 let barChart;
-let lineChart;
-
-let leaderHistory = [];
-let timeLabels = [];
 
 async function loadData() {
+  const { data: groups, error } = await supabase
+    .from("groups")
+    .select("*");
 
-  const { data: groups } = await supabase.from("groups").select("*");
+  if (error) {
+    console.error(error);
+    return;
+  }
 
   groups.sort((a, b) => b.balance - a.balance);
 
@@ -24,87 +26,66 @@ async function loadData() {
     i === 0 ? "gold" : "rgba(54, 162, 235, 0.5)"
   );
 
-  const oneWeekAgo = new Date();
-  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-
-  const { data: investments } = await supabase
-    .from("investments")
-    .select("*")
-    .gte("created_at", oneWeekAgo.toISOString())
-    .order("created_at", { ascending: true });
-
-  let totals = {};
-
-  let timeLabels = [];
-  let leaderHistory = [];
-  let leaderNames = [];
-
-  investments.forEach(inv => {
-    if (!totals[inv.group_name]) {
-      totals[inv.group_name] = 0;
-    }
-
-    totals[inv.group_name] += inv.amount;
-
-    let leader = Object.entries(totals).sort((a, b) => b[1] - a[1])[0];
-
-    timeLabels.push(new Date(inv.created_at).toLocaleTimeString());
-    leaderHistory.push(leader[1]);
-    leaderNames.push(leader[0]);
-  });
-
-  const barCtx = document.getElementById("barChart");
+  const ctx = document.getElementById("barChart");
 
   if (barChart) barChart.destroy();
 
-  barChart = new Chart(barCtx, {
+  barChart = new Chart(ctx, {
     type: "bar",
     data: {
       labels,
       datasets: [{
-        label: "Group Balance",
+        label: "",
         data: values,
         backgroundColor: colors
       }]
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        }
+      }
     }
   });
 
-  const lineCtx = document.getElementById("lineChart");
+  // First place
+  const first = groups[0];
 
-  if (lineChart) lineChart.destroy();
+  if (first) {
+    document.getElementById("firstPlace").innerHTML =
+      `First Place: <span style="color:gold;">${first.name}</span>`;
+  }
 
-  lineChart = new Chart(lineCtx, {
-    type: "line",
-    data: {
-      labels: timeLabels,
-      datasets: [{
-        label: "1st Place",
-        data: leaderHistory,
-        tension: 0.3
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false
-    }
-  });
-  const { count } = await supabase
-  .from('investments')
-  .select('*', { count: 'exact', head: true })
+  // Investments
+  const { data: investments } = await supabase
+    .from("investments")
+    .select("amount");
 
-  document.getElementById("investmentAmount").innerText = "Total Investments: " + count;
+  const totalCount = investments?.length || 0;
+
+  let totalMoney = 0;
+  investments?.forEach(i => totalMoney += i.amount);
+
+  document.getElementById("investmentAmount").innerText =
+    "Total Investments: " + totalCount;
+
+  document.getElementById("totalMoney").innerText =
+    "Total Money Invested: $" + totalMoney.toLocaleString();
 }
 
+// 🔥 REALTIME
 supabase
   .channel("groups")
   .on(
     "postgres_changes",
     { event: "*", schema: "public", table: "groups" },
-    loadData
+    (payload) => {
+      console.log("Realtime update:", payload);
+      setTimeout(loadData, 150); // small delay prevents glitches
+    }
   )
   .subscribe();
 
