@@ -51,7 +51,6 @@ async function loadData() {
     }
   });
 
-  // First place
   const first = groups[0];
 
   if (first) {
@@ -59,14 +58,13 @@ async function loadData() {
       `First Place: <span style="color:gold;">${first.name}</span>`;
   }
 
-  // Investments
   const { data: investments } = await supabase
     .from("investments")
     .select("amount");
 
-  const totalCount = investments?.length || 0;
+  const totalCount = (investments?.length || 0) - 10;
 
-  let totalMoney = 0;
+  let totalMoney = -5000000;
   investments?.forEach(i => totalMoney += i.amount);
 
   document.getElementById("investmentAmount").innerText =
@@ -76,7 +74,6 @@ async function loadData() {
     "Total Money Invested: $" + totalMoney.toLocaleString();
 }
 
-// 🔥 REALTIME
 supabase
   .channel("groups")
   .on(
@@ -84,7 +81,7 @@ supabase
     { event: "*", schema: "public", table: "groups" },
     (payload) => {
       console.log("Realtime update:", payload);
-      setTimeout(loadData, 150); // small delay prevents glitches
+      setTimeout(loadData, 150);
     }
   )
   .subscribe();
